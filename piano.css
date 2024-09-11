@@ -1,4 +1,3 @@
-/* Общее оформление страницы */
 body {
     display: inline-flex;
     flex-direction: column;
@@ -10,7 +9,7 @@ body {
     word-wrap: break-word;
     flex-wrap: wrap;
 }
-/* Контейнер для заголовка */
+
 .header-container {
     width: 100%;
     background-color: #613d37; /* Темно-коричневый фон */
@@ -19,7 +18,7 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Тень для придания объема */
     margin-bottom: 30px;
 }
-/* Фраза над пианино "Enjoy your performance!" */
+/*"Enjoy your performance!" */
 .piano-header {
     font-size: 1.6em;
     color: #5D4037;
@@ -30,7 +29,6 @@ body {
     letter-spacing: 1px;
 }
 
-/* Стиль для заголовка */
 h1 {
     font-size: 3.5em;
     color: #fff; /* Белый цвет текста */
@@ -49,7 +47,6 @@ h3, h4 {
     /* margin-bottom: 15px; Уменьшаем отступы снизу */
 }
 
-/* Стиль пианино */
 #piano {
     display: flex;
     align-items: flex-start;
@@ -84,7 +81,6 @@ h3, h4 {
     border-radius: 0px;
 }
 
-/* Холст для нот */
 #staffCanvas {
     height: 250px;
     margin-top: -90px;
@@ -98,7 +94,6 @@ h3, h4 {
     src: format('opentype');
 }
 
-/* Кнопки */
 .button-container {
     display: flex;
     justify-content: space-between;
@@ -127,11 +122,11 @@ button:active {
     background-color: #3E2723;
 }
 
-/* Футер */
 footer {
     border-top: 2px solid #5D4037;
     width: 100%;
     color: #3E2723;
+    bottom: 0;
     font-size: 1.1em;
     background-color: #D7CCC8;
     padding: 20px;
@@ -140,7 +135,7 @@ footer {
 }
 
 * {
-    box-sizing: border-box; /* Все отступы и границы включаются в ширину элемента */
+    box-sizing: border-box; 
 }
 .key.active {
     transform: translateY(2px);
