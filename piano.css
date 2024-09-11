@@ -1,0 +1,149 @@
+/* Общее оформление страницы */
+body {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #f5f5f5;
+    font-family: 'Times New Roman', serif;
+    color: #333;
+    word-wrap: break-word;
+    flex-wrap: wrap;
+}
+/* Контейнер для заголовка */
+.header-container {
+    width: 100%;
+    background-color: #613d37; /* Темно-коричневый фон */
+    padding: 20px 0;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Тень для придания объема */
+    margin-bottom: 30px;
+}
+/* Фраза над пианино "Enjoy your performance!" */
+.piano-header {
+    font-size: 1.6em;
+    color: #5D4037;
+    margin-top: 30px; /* Увеличиваем отступ сверху для большего воздуха */
+    margin-bottom: 20px; /* Увеличиваем отступ снизу */
+    text-align: center; /* Центрируем текст */
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* Стиль для заголовка */
+h1 {
+    font-size: 3.5em;
+    color: #fff; /* Белый цвет текста */
+    letter-spacing: 2px;
+    /* text-transform: uppercase; */
+    margin: 0; /* Убираем отступы у заголовка */
+    text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3); /* Тень текста */
+}
+
+
+h3, h4 {
+    font-size: 1.2em;
+    color: #5D4037;
+    text-align: center; /* Выравниваем по центру */
+    line-height: 1.6em; /* Увеличиваем межстрочный интервал */
+    /* margin-bottom: 15px; Уменьшаем отступы снизу */
+}
+
+/* Стиль пианино */
+#piano {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    background-color: #795548; /* Темно-коричневый для пианино */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+}
+
+.key {
+    border: 1px solid black;
+    box-sizing: border-box;
+    border-radius: 4px;
+}
+
+.white {
+    background-color: #fdfdfd;
+    height: 160px;
+    width: 35px;
+    margin: 1px;
+}
+
+.black {
+    background-color: black; /* Просто черные клавиши */
+    width: 22px;
+    height: 110px;
+    margin-left: -12px;
+    margin-right: -12px;
+    z-index: 1;
+    border-radius: 0px;
+}
+
+/* Холст для нот */
+#staffCanvas {
+    height: 250px;
+    margin-top: -90px;
+    border: 2px solid #3E2723;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+@font-face {
+    font-family: 'Bravura';
+    src: format('opentype');
+}
+
+/* Кнопки */
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    width: 220px;
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #4E342E;
+    color: white;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 100px;
+}
+
+button:hover {
+    background-color: #6D4C41;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+    background-color: #3E2723;
+}
+
+/* Футер */
+footer {
+    border-top: 2px solid #5D4037;
+    width: 100%;
+    color: #3E2723;
+    font-size: 1.1em;
+    background-color: #D7CCC8;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box; /* Все отступы и границы включаются в ширину элемента */
+}
+.key.active {
+    transform: translateY(2px);
+    transition: transform 0.1s;
+}
+
