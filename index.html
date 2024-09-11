@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Vasilina Khvostikova">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Piano</title>
+    <link rel="stylesheet" href="piano.css">
+</head>
+<body>
+    <div class="header-container">
+        <h1>Virtual Piano</h1>
+    </div>    
+
+    <h2>Welcome to the Virtual Piano!</h2>
+    <h3><p>Here, you have the chance to not only play the piano but also create your own melodies, which will be automatically displayed on the musical staff. Each note you press will instantly appear, turning your performance into a real musical score. This is a unique opportunity to see the music you create in real-time!
+        <p>The piano features 4 octaves: small, first, second, and third. This range is more than enough to play single-voice melodies and bring your musical ideas to life.
+        <p>Be creative, dream big, get inspired, and do not be afraid to experiment with the notes!</h3>
+    <h3 class="piano-header">Enjoy your performance!</h3>
+
+    <div id="piano"></div>
+    <h3>Your composition:</h3>
+
+    <canvas id="notesCanvas" width="500" height="100"></canvas>
+    <canvas id="staffCanvas" width="500" height="200"></canvas>
+    
+    <div class="button-container">
+        <button id="clearBtn" aria-label="Clear the staff and notes">Clear</button>
+        <button id="undoBtn" aria-label="Undo the last note">Undo</button>        
+    </div>
+
+    <script src="piano.js"></script>
+    
+    <footer>
+        <address>Copyright &copy; 2024 Vasilina Khvostikova</address>
+        <nav class="container2">
+            <p>Thank you for your interest in this project! I would love to hear any feedback, suggestions, or ideas you might have. Feel free to contact me via <a href="https://www.linkedin.com/in/khvostiv/">LinkedIn Profile</a>.</p>
+        </nav>
+    </footer> 
+       
+</body>
+</html>
