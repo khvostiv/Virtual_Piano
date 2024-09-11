@@ -1,15 +1,20 @@
+/* Общее оформление страницы */
 body {
     display: inline-flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between; /* Для того чтобы контент и футер были правильно размещены */
+    min-height: 100vh;
     align-items: center;
     background-color: #f5f5f5;
     font-family: 'Times New Roman', serif;
     color: #333;
     word-wrap: break-word;
     flex-wrap: wrap;
-}
+    margin: 0;
+    flex: 1;
 
+}
+/* Контейнер для заголовка */
 .header-container {
     width: 100%;
     background-color: #613d37; /* Темно-коричневый фон */
@@ -18,7 +23,7 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Тень для придания объема */
     margin-bottom: 30px;
 }
-/*"Enjoy your performance!" */
+/* Фраза над пианино "Enjoy your performance!" */
 .piano-header {
     font-size: 1.6em;
     color: #5D4037;
@@ -29,6 +34,7 @@ body {
     letter-spacing: 1px;
 }
 
+/* Стиль для заголовка */
 h1 {
     font-size: 3.5em;
     color: #fff; /* Белый цвет текста */
@@ -47,6 +53,7 @@ h3, h4 {
     /* margin-bottom: 15px; Уменьшаем отступы снизу */
 }
 
+/* Стиль пианино */
 #piano {
     display: flex;
     align-items: flex-start;
@@ -81,6 +88,7 @@ h3, h4 {
     border-radius: 0px;
 }
 
+/* Холст для нот */
 #staffCanvas {
     height: 250px;
     margin-top: -90px;
@@ -94,6 +102,7 @@ h3, h4 {
     src: format('opentype');
 }
 
+/* Кнопки */
 .button-container {
     display: flex;
     justify-content: space-between;
@@ -122,11 +131,14 @@ button:active {
     background-color: #3E2723;
 }
 
+/* Футер */
 footer {
+    bottom: 0;
+    margin-top: auto;
+    position:relative;
     border-top: 2px solid #5D4037;
     width: 100%;
     color: #3E2723;
-    bottom: 0;
     font-size: 1.1em;
     background-color: #D7CCC8;
     padding: 20px;
@@ -135,10 +147,12 @@ footer {
 }
 
 * {
-    box-sizing: border-box; 
+    box-sizing: border-box; /* Все отступы и границы включаются в ширину элемента */
 }
 .key.active {
     transform: translateY(2px);
     transition: transform 0.1s;
 }
-
+#content {
+    flex: 1;
+}
