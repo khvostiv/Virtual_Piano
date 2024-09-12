@@ -11,7 +11,11 @@ body {
     word-wrap: break-word;
     flex-wrap: wrap;
     margin: 0;
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    height: 100%;
+
 
 }
 /* Контейнер для заголовка */
@@ -108,6 +112,7 @@ h3, h4 {
     justify-content: space-between;
     width: 220px;
     margin-top: 20px;
+    /* margin-bottom: 100%; */
 }
 
 button {
@@ -134,7 +139,8 @@ button:active {
 /* Футер */
 footer {
     bottom: 0;
-    margin-top: auto;
+    position: relative;
+    margin-top: 100%;
     position:relative;
     border-top: 2px solid #5D4037;
     width: 100%;
@@ -154,5 +160,6 @@ footer {
     transition: transform 0.1s;
 }
 #content {
-    flex: 1;
+    flex-grow: 1 1 auto;
 }
+
