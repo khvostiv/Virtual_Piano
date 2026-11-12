@@ -64,7 +64,7 @@
        Audio engine
        --------------------------------------------------------------- */
 
-    const Audio$ = {
+    const Sampler = {
         ctx: null,
         master: null,
         buffers: new Map(),
@@ -100,7 +100,7 @@
                 this.master.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.015);
             }
             this.elements.forEach(function (list) {
-                list.forEach(function (el) { el.volume = Audio$.volume; });
+                list.forEach(function (el) { el.volume = Sampler.volume; });
             });
         },
 
@@ -224,7 +224,7 @@
             list.push(el);
             this.elements.set(note, list);
             el.addEventListener('ended', function () {
-                const current = Audio$.elements.get(note) || [];
+                const current = Sampler.elements.get(note) || [];
                 const index = current.indexOf(el);
                 if (index > -1) current.splice(index, 1);
             });
@@ -399,7 +399,7 @@
         if (!keyElements.has(note)) return;
 
         pressed.add(note);
-        Audio$.start(note);
+        Sampler.start(note);
 
         const key = keyElements.get(note);
         key.classList.add('is-active');
@@ -414,7 +414,7 @@
     function releaseNote(note) {
         if (!pressed.has(note)) return;
         pressed.delete(note);
-        Audio$.release(note);
+        Sampler.release(note);
         const key = keyElements.get(note);
         if (key) key.classList.remove('is-active');
     }
@@ -530,7 +530,7 @@
     function setPedal(down) {
         if (down === pedalHeld) return;
         pedalHeld = down;
-        Audio$.setPedal(down);
+        Sampler.setPedal(down);
         dom.sustainToggle.setAttribute('aria-checked', String(down));
     }
 
@@ -1043,7 +1043,7 @@
             const value = Number(dom.volume.value);
             dom.volumeOut.textContent = String(value);
             syncSlider(dom.volume);
-            Audio$.setVolume(value / 100);
+            Sampler.setVolume(value / 100);
         });
         syncSlider(dom.volume);
 
@@ -1073,7 +1073,7 @@
                 Player.stop();
                 return;
             }
-            Audio$.unlock();
+            Sampler.unlock();
             Player.play(Score.notes, 'score');
         });
 
@@ -1082,7 +1082,7 @@
                 Player.stop();
                 return;
             }
-            Audio$.unlock();
+            Sampler.unlock();
             Score.clear();
             Player.play(DEMO_MELODY, 'demo', { record: true, tempo: 480 });
         });
@@ -1107,7 +1107,7 @@
        --------------------------------------------------------------- */
 
     function loadSamples() {
-        Audio$.preload(function (done, total) {
+        Sampler.preload(function (done, total) {
             if (done >= total) return;
             dom.loadStatus.textContent = 'Loading samples \u00b7 ' + done + '/' + total;
         }).then(function () {
@@ -1185,7 +1185,7 @@
         loadMusicFont();
         loadSamples();
 
-        const unlock = function () { Audio$.unlock(); };
+        const unlock = function () { Sampler.unlock(); };
         window.addEventListener('pointerdown', unlock, { once: true });
         window.addEventListener('keydown', unlock, { once: true });
     }
