@@ -59,6 +59,7 @@
     }
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const coarsePointer = window.matchMedia('(pointer: coarse)');
 
     /* ---------------------------------------------------------------
        Audio engine
@@ -257,6 +258,8 @@
     const dom = {
         keyboard: document.getElementById('piano'),
         keybed: document.getElementById('keybed'),
+        pianoShell: document.querySelector('.piano-shell'),
+        octaveNav: document.getElementById('octaveNav'),
         readout: document.getElementById('noteReadout'),
         loadStatus: document.getElementById('loadStatus'),
         volume: document.getElementById('volume'),
@@ -268,6 +271,7 @@
         letterToggle: document.getElementById('letterToggle'),
         nameToggle: document.getElementById('nameToggle'),
         canvas: document.getElementById('staffCanvas'),
+        clefCanvas: document.getElementById('clefCanvas'),
         sheetScroll: document.getElementById('sheetScroll'),
         sheetEmpty: document.getElementById('sheetEmpty'),
         noteCount: document.getElementById('noteCount'),
@@ -358,10 +362,18 @@
     }
 
     /* Keys are sized to the available width so the whole instrument fits on a
-       laptop, and scrolls gracefully on a phone. */
+       laptop, and stay thumb-sized on a phone, where the keyboard scrolls. */
     function layoutKeyboard() {
-        const available = dom.keybed.clientWidth - 36;
-        const whiteWidth = clamp(Math.floor(available / WHITE_KEYS_TOTAL), 27, 46);
+        const bed = window.getComputedStyle(dom.keybed);
+        const padding = parseFloat(bed.paddingLeft) + parseFloat(bed.paddingRight);
+        /* every white key carries a 1px gap, so take those out before dividing */
+        const available = dom.keybed.clientWidth - padding - WHITE_KEYS_TOTAL;
+
+        /* Show all four octaves when they still look like keys; otherwise keep
+           them comfortably wide and let the keyboard scroll instead. */
+        const ifItAllFits = Math.floor(available / WHITE_KEYS_TOTAL);
+        const comfortable = coarsePointer.matches ? 44 : 40;
+        const whiteWidth = ifItAllFits >= 30 ? Math.min(ifItAllFits, 46) : comfortable;
         const blackWidth = Math.round(whiteWidth * 0.62);
         const whiteHeight = clamp(Math.round(whiteWidth * 4.7), 150, 205);
 
@@ -449,30 +461,53 @@
        Pointer input
        --------------------------------------------------------------- */
 
+    /* Each finger (or the mouse) is tracked on its own, so chords survive one
+       finger lifting and a drag slides from key to key. */
+    const pointerNotes = new Map();
+
+    function keyAtPoint(x, y) {
+        const element = document.elementFromPoint(x, y);
+        return element && element.closest ? element.closest('.key') : null;
+    }
+
+    function releaseForPointer(pointerId) {
+        const note = pointerNotes.get(pointerId);
+        pointerNotes.delete(pointerId);
+        if (!note) return;
+        let heldByAnother = false;
+        pointerNotes.forEach(function (other) {
+            if (other === note) heldByAnother = true;
+        });
+        if (!heldByAnother) releaseNote(note);
+    }
+
     function bindPointer() {
         dom.keyboard.addEventListener('pointerdown', function (event) {
             const key = event.target.closest('.key');
             if (!key) return;
             event.preventDefault();
             key.blur();
+            if (dom.keyboard.setPointerCapture) {
+                try { dom.keyboard.setPointerCapture(event.pointerId); } catch (err) { /* ignore */ }
+            }
+            pointerNotes.set(event.pointerId, key.dataset.note);
             pressNote(key.dataset.note);
         });
 
-        /* Glissando: dragging across the keys keeps sounding them. */
-        dom.keyboard.addEventListener('pointerover', function (event) {
-            if (!event.buttons) return;
-            const key = event.target.closest('.key');
-            if (key) pressNote(key.dataset.note);
-        });
-
-        dom.keyboard.addEventListener('pointerout', function (event) {
-            const key = event.target.closest('.key');
-            if (key) releaseNote(key.dataset.note);
+        /* Glissando: sliding across the keys keeps sounding them. */
+        dom.keyboard.addEventListener('pointermove', function (event) {
+            if (!pointerNotes.has(event.pointerId)) return;
+            const key = keyAtPoint(event.clientX, event.clientY);
+            const note = key ? key.dataset.note : null;
+            if (note === pointerNotes.get(event.pointerId)) return;
+            releaseForPointer(event.pointerId);
+            pointerNotes.set(event.pointerId, note);
+            if (note) pressNote(note);
         });
 
         ['pointerup', 'pointercancel'].forEach(function (type) {
-            window.addEventListener(type, function () {
-                Array.from(pressed).forEach(releaseNote);
+            window.addEventListener(type, function (event) {
+                releaseForPointer(event.pointerId);
             });
         });
 
@@ -484,6 +519,70 @@
             event.preventDefault();
             flashNote(key.dataset.note, 320);
         });
+    }
+
+    /* ---------------------------------------------------------------
+       Octave navigator — how you reach the far octaves on a small screen
+       --------------------------------------------------------------- */
+
+    function octaveOffset(octave) {
+        const key = keyElements.get('C' + octave);
+        if (!key) return 0;
+        return key.getBoundingClientRect().left - dom.keybed.getBoundingClientRect().left;
+    }
+
+    function scrollToOctave(octave, instant) {
+        const target = dom.keybed.scrollLeft + octaveOffset(octave) - 12;
+        dom.keybed.scrollTo({
+            left: Math.max(0, target),
+            behavior: instant || reducedMotion.matches ? 'auto' : 'smooth'
+        });
+    }
+
+    function updateOctaveNav() {
+        const overflow = dom.keybed.scrollWidth - dom.keybed.clientWidth;
+        dom.pianoShell.classList.toggle('is-scrollable', overflow > 4);
+
+        /* The octave on show is the first one whose C has not scrolled off the
+           left edge; past the last C, it is the top octave. */
+        let nearest = OCTAVES;
+        let smallest = Infinity;
+        for (let octave = 1; octave <= OCTAVES; octave += 1) {
+            const offset = octaveOffset(octave);
+            if (offset >= -4 && offset < smallest) {
+                smallest = offset;
+                nearest = octave;
+            }
+        }
+        dom.octaveNav.querySelectorAll('.octave-chip').forEach(function (chip) {
+            chip.setAttribute('aria-current', String(Number(chip.dataset.octave) === nearest));
+        });
+    }
+
+    function bindOctaveNav() {
+        dom.octaveNav.addEventListener('click', function (event) {
+            const chip = event.target.closest('.octave-chip');
+            if (!chip) return;
+            scrollToOctave(Number(chip.dataset.octave));
+        });
+
+        let frame = null;
+        dom.keybed.addEventListener('scroll', function () {
+            if (frame) return;
+            frame = window.requestAnimationFrame(function () {
+                updateOctaveNav();
+                frame = null;
+            });
+        }, { passive: true });
+
+        updateOctaveNav();
+
+        /* On a narrow screen, open on the middle of the instrument rather than
+           the deepest bass octave. */
+        if (dom.keybed.clientWidth < dom.keybed.scrollWidth * 0.6) {
+            scrollToOctave(2, true);
+            updateOctaveNav();
+        }
     }
 
     /* ---------------------------------------------------------------
@@ -576,6 +675,7 @@
         });
 
         window.addEventListener('blur', function () {
+            pointerNotes.clear();
             Array.from(pressed).forEach(releaseNote);
             if (!pedalLatched) setPedal(false);
         });
@@ -595,6 +695,7 @@
     const Score = {
         notes: [],
         ctx: dom.canvas.getContext('2d'),
+        clefCtx: dom.clefCanvas.getContext('2d'),
         smufl: false,
         popIndex: -1,
         popStart: 0,
@@ -642,6 +743,15 @@
             dom.canvas.style.height = this.metrics.height + 'px';
             this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
             this.width = width;
+
+            this.clefWidth = this.metrics.firstNoteX - this.metrics.gap * 0.7;
+            dom.clefCanvas.width = Math.round(this.clefWidth * ratio);
+            dom.clefCanvas.height = dom.canvas.height;
+            dom.clefCanvas.style.width = this.clefWidth + 'px';
+            dom.clefCanvas.style.height = this.metrics.height + 'px';
+            dom.clefCanvas.style.marginTop = '-' + this.metrics.height + 'px';
+            this.clefCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
             this.draw();
         },
 
@@ -720,23 +830,21 @@
             return (this.metrics.gap * spaces) + 'px Bravura, serif';
         },
 
-        draw: function () {
-            const ctx = this.ctx;
+        /* Staff edges, by scientific diatonic step. */
+        edges: function () {
+            return {
+                trebleTop: this.y(38),    // F5
+                trebleBottom: this.y(30), // E4
+                bassTop: this.y(26),      // A3
+                bassBottom: this.y(18)    // G2
+            };
+        },
+
+        drawStaffLines: function (ctx, left, right) {
             const m = this.metrics;
-            ctx.clearRect(0, 0, this.width, m.height);
-            ctx.fillStyle = '#231a10';
-            ctx.strokeStyle = '#2c2116';
-            ctx.lineCap = 'butt';
-
-            const left = Math.round(m.gap * 1.4);
-            const right = this.width - m.gap * 2;
-            const trebleTop = this.y(38);   // F5
-            const trebleBottom = this.y(30); // E4
-            const bassTop = this.y(26);     // A3
-            const bassBottom = this.y(18);  // G2
-
+            const e = this.edges();
             ctx.lineWidth = Math.max(1, m.gap * 0.08);
-            [[trebleBottom, trebleTop], [bassBottom, bassTop]].forEach(function (pair) {
+            [[e.trebleBottom, e.trebleTop], [e.bassBottom, e.bassTop]].forEach(function (pair) {
                 for (let i = 0; i < 5; i += 1) {
                     const y = pair[0] - i * m.gap;
                     ctx.beginPath();
@@ -745,41 +853,52 @@
                     ctx.stroke();
                 }
             });
+        },
 
-            this.drawBrace(left - m.gap * 0.75, trebleTop, bassBottom);
+        inkUp: function (ctx) {
+            ctx.fillStyle = '#231a10';
+            ctx.strokeStyle = '#2c2116';
+            ctx.lineCap = 'butt';
+        },
+
+        draw: function () {
+            const ctx = this.ctx;
+            const m = this.metrics;
+            const e = this.edges();
+            const left = Math.round(m.gap * 1.4);
+            const right = this.width - m.gap * 2;
+
+            ctx.clearRect(0, 0, this.width, m.height);
+            this.inkUp(ctx);
+            this.drawStaffLines(ctx, left, right);
+            this.drawNotes();
+            this.drawFinalBarline(ctx, right, e.trebleTop, e.bassBottom);
+            this.drawClefPanel();
+        },
+
+        /* Redrawn on the pinned canvas that floats over the left edge. */
+        drawClefPanel: function () {
+            const ctx = this.clefCtx;
+            const m = this.metrics;
+            const e = this.edges();
+            const left = Math.round(m.gap * 1.4);
+
+            ctx.clearRect(0, 0, this.clefWidth, m.height);
+            this.inkUp(ctx);
+            this.drawStaffLines(ctx, left, this.clefWidth);
+            this.drawBrace(ctx, left - m.gap * 0.75, e.trebleTop, e.bassBottom);
 
             // opening barline joining both staves
             ctx.lineWidth = Math.max(1.4, m.gap * 0.11);
             ctx.beginPath();
-            ctx.moveTo(left, trebleTop);
-            ctx.lineTo(left, bassBottom);
+            ctx.moveTo(left, e.trebleTop);
+            ctx.lineTo(left, e.bassBottom);
             ctx.stroke();
 
-            this.drawTitle(left, trebleTop);
-            this.drawClefs(left + m.gap * 0.9);
-            this.drawNotes();
-            this.drawFinalBarline(right, trebleTop, bassBottom);
+            this.drawClefs(ctx, left + m.gap * 0.9);
         },
 
-        drawTitle: function (x, staffTop) {
-            const ctx = this.ctx;
-            const gap = this.metrics.gap;
-            ctx.save();
-            ctx.fillStyle = 'rgba(94, 73, 38, 0.78)';
-            ctx.textBaseline = 'alphabetic';
-            ctx.font = 'italic ' + Math.round(gap * 1.7) + 'px "Cormorant Garamond", Georgia, serif';
-            ctx.fillText('Improvisation', x, staffTop - gap * 3.1);
-            ctx.font = Math.round(gap * 0.85) + 'px "Inter", system-ui, sans-serif';
-            ctx.fillStyle = 'rgba(94, 73, 38, 0.5)';
-            ctx.fillText(
-                this.notes.length ? this.notes.length + ' notes · piano solo' : 'piano solo',
-                x, staffTop - gap * 1.6
-            );
-            ctx.restore();
-        },
-
-        drawBrace: function (x, top, bottom) {
-            const ctx = this.ctx;
+        drawBrace: function (ctx, x, top, bottom) {
             const mid = (top + bottom) / 2;
             const w = this.metrics.gap * 0.9;
             ctx.save();
@@ -793,8 +912,7 @@
             ctx.restore();
         },
 
-        drawClefs: function (x) {
-            const ctx = this.ctx;
+        drawClefs: function (ctx, x) {
             if (this.smufl) {
                 ctx.font = this.font(4);
                 ctx.textBaseline = 'alphabetic';
@@ -818,8 +936,7 @@
 
         /* The system always closes with a double barline at the far right, the
            way a printed sheet does. */
-        drawFinalBarline: function (right, top, bottom) {
-            const ctx = this.ctx;
+        drawFinalBarline: function (ctx, right, top, bottom) {
             const m = this.metrics;
             const thick = Math.max(2.5, m.gap * 0.26);
             ctx.lineWidth = Math.max(1, m.gap * 0.08);
@@ -1141,6 +1258,7 @@
             if (frame) window.cancelAnimationFrame(frame);
             frame = window.requestAnimationFrame(function () {
                 layoutKeyboard();
+                updateOctaveNav();
                 Score.resize();
                 frame = null;
             });
@@ -1176,7 +1294,16 @@
     function init() {
         buildKeyboard();
         refreshKeyHints();
+
+        /* A touchscreen has no keys to hint at, so start with the note names
+           only and hand the octave chips the job of moving around. */
+        if (coarsePointer.matches) {
+            dom.letterToggle.setAttribute('aria-checked', 'false');
+            dom.keyboard.classList.add('hide-letters');
+        }
+
         bindPointer();
+        bindOctaveNav();
         bindTyping();
         bindControls();
         bindReveals();

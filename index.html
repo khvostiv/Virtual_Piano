@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="author" content="Vasilina Khvostikova">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description"
         content="A four-octave virtual grand piano with real piano samples that writes every note you play onto a live musical staff.">
     <meta name="theme-color" content="#120f14">
@@ -67,7 +67,7 @@
             </p>
             <ul class="feature-list">
                 <li><span aria-hidden="true">&#9833;</span> Four octaves, from the small to the third</li>
-                <li><span aria-hidden="true">&#9834;</span> Sustain pedal &mdash; hold <kbd>Shift</kbd></li>
+                <li><span aria-hidden="true">&#9834;</span> Sustain pedal and glissando</li>
                 <li><span aria-hidden="true">&#9835;</span> Replay, undo, or clear your melody</li>
             </ul>
         </section>
@@ -90,7 +90,21 @@
                 <div class="keybed" id="keybed">
                     <div class="keyboard" id="piano" role="group" aria-label="Piano keyboard, four octaves"></div>
                 </div>
-                <p class="scroll-hint" aria-hidden="true">Swipe the keys sideways to reach every octave</p>
+                <div class="octave-nav" id="octaveNav" role="group" aria-label="Jump to an octave">
+                    <span class="octave-nav-label" aria-hidden="true">Octave</span>
+                    <button type="button" class="octave-chip" data-octave="1"
+                        aria-label="Jump to the small octave, starting at C1"><strong>C1</strong>
+                        <span>small</span></button>
+                    <button type="button" class="octave-chip" data-octave="2"
+                        aria-label="Jump to the first octave, starting at C2"><strong>C2</strong>
+                        <span>first</span></button>
+                    <button type="button" class="octave-chip" data-octave="3"
+                        aria-label="Jump to the second octave, starting at C3"><strong>C3</strong>
+                        <span>second</span></button>
+                    <button type="button" class="octave-chip" data-octave="4"
+                        aria-label="Jump to the third octave, starting at C4"><strong>C4</strong>
+                        <span>third</span></button>
+                </div>
             </div>
 
             <div class="console" aria-label="Performance controls">
@@ -103,7 +117,7 @@
                     </div>
                 </div>
 
-                <div class="console-group">
+                <div class="console-group is-typing-only">
                     <span class="console-label" id="octave-label">Typing octaves</span>
                     <div class="stepper" role="group" aria-labelledby="octave-label">
                         <button type="button" class="step-btn" id="octaveDown" aria-label="Shift typing octave down">
@@ -141,9 +155,16 @@
             </div>
 
             <div class="sheet">
+                <div class="sheet-head" aria-hidden="true">
+                    <span class="sheet-title">Improvisation</span>
+                    <span class="sheet-sub">piano solo</span>
+                </div>
                 <div class="sheet-scroll" id="sheetScroll" tabindex="0" role="img"
                     aria-label="Musical staff showing the notes you have played">
-                    <canvas id="staffCanvas"></canvas>
+                    <div class="sheet-inner">
+                        <canvas id="staffCanvas"></canvas>
+                        <canvas id="clefCanvas" class="sheet-clef" aria-hidden="true"></canvas>
+                    </div>
                 </div>
                 <p class="sheet-empty" id="sheetEmpty">Press a key &mdash; your first note lands right here.</p>
             </div>

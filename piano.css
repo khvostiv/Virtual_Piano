@@ -544,7 +544,8 @@ kbd {
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
-    touch-action: manipulation;
+    /* vertical swipes still scroll the page; sideways drags become glissandi */
+    touch-action: pan-y;
     transform-origin: top center;
     transition:
         transform 0.11s var(--ease-out),
@@ -694,7 +695,8 @@ kbd {
 }
 
 /* keys outside the current typing range keep the space but show no pill */
-.key-letter:empty {
+.key.white .key-letter:empty,
+.key.black .key-letter:empty {
     background: none;
     box-shadow: none;
 }
@@ -703,14 +705,66 @@ kbd {
     bottom: 5px;
 }
 
-.scroll-hint {
-    margin: 0.6rem 0 0;
-    text-align: center;
-    font-size: 0.72rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: rgba(246, 227, 184, 0.38);
+/* --------------------- octave navigator (on the case) ----------------- */
+
+.octave-nav {
     display: none;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.7rem clamp(0.6rem, 2vw, 1.2rem) 0.2rem;
+}
+
+.piano-shell.is-scrollable .octave-nav {
+    display: flex;
+}
+
+.octave-nav-label {
+    margin-right: 0.35rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(246, 227, 184, 0.45);
+}
+
+.octave-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    min-width: 3.1rem;
+    min-height: 2.6rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 10px;
+    border: 1px solid rgba(246, 227, 184, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(246, 227, 184, 0.68);
+    font: 600 0.82rem/1.1 'Inter', system-ui, sans-serif;
+    cursor: pointer;
+    transition: background 0.25s var(--ease-out), color 0.25s var(--ease-out),
+        border-color 0.25s var(--ease-out), transform 0.25s var(--ease-key);
+}
+
+.octave-chip span {
+    font-size: 0.58rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.octave-chip:hover {
+    color: var(--gold-100);
+    border-color: rgba(246, 227, 184, 0.45);
+    transform: translateY(-1px);
+}
+
+.octave-chip[aria-current='true'] {
+    background: linear-gradient(135deg, rgba(232, 195, 122, 0.95), rgba(199, 154, 75, 0.9));
+    border-color: transparent;
+    color: #1d1407;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
 /* floating note sparks */
@@ -935,8 +989,7 @@ input[type='range']::-moz-range-thumb {
     overflow-x: auto;
     overflow-y: hidden;
     border-radius: 8px;
-    background:
-        radial-gradient(120% 90% at 50% 0%, #fffdf4, var(--paper) 70%, #ece2c9 100%);
+    background: linear-gradient(180deg, #fffdf5 0%, var(--paper) 62%, #ece2c9 100%);
     box-shadow: inset 0 2px 10px rgba(90, 62, 24, 0.22);
     scrollbar-width: thin;
     scrollbar-color: rgba(120, 90, 40, 0.45) transparent;
@@ -951,9 +1004,50 @@ input[type='range']::-moz-range-thumb {
     background: rgba(120, 90, 40, 0.4);
 }
 
+.sheet-head {
+    position: absolute;
+    top: 1.5rem;
+    left: 2rem;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+}
+
+.sheet-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.5rem;
+    line-height: 1.1;
+    color: rgba(94, 73, 38, 0.82);
+}
+
+.sheet-sub {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: rgba(94, 73, 38, 0.5);
+}
+
+.sheet-inner {
+    position: relative;
+    width: max-content;
+}
+
 #staffCanvas {
     display: block;
-    height: 320px;
+    height: 300px;
+}
+
+/* The clefs ride along the left edge so the music stays readable however far
+   the score has scrolled. */
+.sheet-clef {
+    position: sticky;
+    left: 0;
+    display: block;
+    pointer-events: none;
+    background: linear-gradient(180deg, #fffdf5 0%, var(--paper) 62%, #ece2c9 100%);
+    -webkit-mask-image: linear-gradient(90deg, #000 78%, transparent 100%);
+    mask-image: linear-gradient(90deg, #000 78%, transparent 100%);
 }
 
 .sheet-empty {
@@ -1344,16 +1438,26 @@ input[type='range']::-moz-range-thumb {
 
     .console {
         justify-content: flex-start;
-    }
-
-    .scroll-hint {
-        display: block;
+        gap: 1.1rem 1.6rem;
     }
 }
 
 @media (max-width: 560px) {
     .shell {
         width: calc(100% - 1.6rem);
+    }
+
+    .hero {
+        padding-top: 2.2rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .lede {
+        font-size: 0.98rem;
+    }
+
+    .feature-list {
+        margin-top: 1.4rem;
     }
 
     .brand-text small {
@@ -1369,9 +1473,100 @@ input[type='range']::-moz-range-thumb {
         font-size: 1rem;
     }
 
+    .fallboard-meta {
+        font-size: 0.68rem;
+    }
+
+    .piano-shell {
+        /* let the case bleed to the screen edges like a real keyboard */
+        width: calc(100% + 1.6rem);
+        margin-inline: -0.8rem;
+        border-radius: 16px;
+    }
+
+    .section-head {
+        margin-bottom: 1.1rem;
+    }
+
+    .readout {
+        padding-left: 0.9rem;
+    }
+
+    .console {
+        padding: 0.9rem 1rem;
+        gap: 1rem 1.4rem;
+    }
+
+    .score-actions {
+        gap: 0.5rem;
+    }
+
     .score-actions .action {
-        flex: 1 1 auto;
+        flex: 1 1 42%;
         justify-content: center;
+        min-height: 46px;
+        padding-inline: 0.8rem;
+    }
+
+    .guide-list dt {
+        min-width: 5.2rem;
+    }
+}
+
+/* Phones and tablets driven by a finger: keyboard-only controls are noise,
+   and everything tappable needs a comfortable target. */
+@media (pointer: coarse) and (max-width: 860px) {
+
+    #helpBtn,
+    .is-typing-only,
+    #letterToggle {
+        display: none;
+    }
+
+    .switch,
+    .octave-chip,
+    .action,
+    .step-btn {
+        min-height: 44px;
+    }
+
+    .switch {
+        padding: 0.55rem 1rem 0.55rem 0.5rem;
+    }
+
+    input[type='range'] {
+        height: 6px;
+    }
+
+    input[type='range']::-webkit-slider-thumb {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* Short landscape phones: trim the vertical furniture so the keys fit */
+@media (max-height: 520px) and (orientation: landscape) {
+    .site-header {
+        position: static;
+    }
+
+    .hero {
+        padding-block: 1.6rem 1rem;
+    }
+
+    .feature-list {
+        display: none;
+    }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+    .site-footer {
+        padding-bottom: calc(2.2rem + env(safe-area-inset-bottom));
+    }
+
+    .toast-stack {
+        right: calc(1.2rem + env(safe-area-inset-right));
+        bottom: calc(1.2rem + env(safe-area-inset-bottom));
     }
 }
 
