@@ -1,42 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="author" content="Vasilina Khvostikova">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Piano</title>
+    <meta name="description"
+        content="A four-octave virtual grand piano with real piano samples that writes every note you play onto a live musical staff.">
+    <meta name="theme-color" content="#120f14">
+    <title>Virtual Piano — play, compose, and read your music</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23241a12'/%3E%3Cg fill='%23fffdf6'%3E%3Crect x='5' y='8' width='5' height='16' rx='1'/%3E%3Crect x='11' y='8' width='5' height='16' rx='1'/%3E%3Crect x='17' y='8' width='5' height='16' rx='1'/%3E%3Crect x='23' y='8' width='4' height='16' rx='1'/%3E%3C/g%3E%3Cg fill='%23120d16'%3E%3Crect x='8.6' y='8' width='3.2' height='9' rx='1'/%3E%3Crect x='14.6' y='8' width='3.2' height='9' rx='1'/%3E%3Crect x='21.6' y='8' width='3.2' height='9' rx='1'/%3E%3C/g%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="piano.css">
 </head>
-<body>
-    <div class="header-container">
-        <h1>Virtual Piano</h1>
-    </div>    
 
-    <h2>Welcome to the Virtual Piano!</h2>
-    <h3><p>Here, you have the chance to not only play the piano but also create your own melodies, which will be automatically displayed on the musical staff. Each note you press will instantly appear, turning your performance into a real musical score. This is a unique opportunity to see the music you create in real-time!
-        <p>The piano features 4 octaves: small, first, second, and third. This range is more than enough to play single-voice melodies and bring your musical ideas to life.
-        <p>Be creative, dream big, get inspired, and do not be afraid to experiment with the notes!</h3>
-    <h3 class="piano-header">Enjoy your performance!</h3>
+<body id="top">
+    <a class="skip-link" href="#instrument">Skip to the keyboard</a>
 
-    <div id="piano"></div>
-    <h3>Your composition:</h3>
+    <div class="stage-glow" aria-hidden="true"></div>
 
-    <canvas id="notesCanvas" width="500" height="100"></canvas>
-    <canvas id="staffCanvas" width="500" height="200"></canvas>
-    
-    <div class="button-container">
-        <button id="clearBtn" aria-label="Clear the staff and notes">Clear</button>
-        <button id="undoBtn" aria-label="Undo the last note">Undo</button>        
-    </div>
+    <header class="site-header">
+        <div class="shell header-inner">
+            <a class="brand" href="#top">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" role="img" focusable="false">
+                        <rect class="bm-body" x="2" y="6" width="44" height="36" rx="6" />
+                        <g class="bm-whites">
+                            <rect x="7" y="13" width="7.4" height="22" rx="1.6" />
+                            <rect x="16.4" y="13" width="7.4" height="22" rx="1.6" />
+                            <rect x="25.8" y="13" width="7.4" height="22" rx="1.6" />
+                            <rect x="35.2" y="13" width="6" height="22" rx="1.6" />
+                        </g>
+                        <g class="bm-blacks">
+                            <rect x="12" y="13" width="4.6" height="13" rx="1.2" />
+                            <rect x="21.4" y="13" width="4.6" height="13" rx="1.2" />
+                            <rect x="33" y="13" width="4.6" height="13" rx="1.2" />
+                        </g>
+                    </svg>
+                </span>
+                <span class="brand-text">
+                    <strong>Virtual Piano</strong>
+                    <small>Play &middot; Compose &middot; Read</small>
+                </span>
+            </a>
+            <nav class="header-actions" aria-label="Page actions">
+                <a class="ghost-btn is-quiet" href="#score">Your score</a>
+                <button type="button" class="ghost-btn" id="helpBtn" aria-haspopup="dialog">
+                    <span class="btn-key-hint" aria-hidden="true">?</span> Keyboard guide
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero shell reveal">
+            <p class="eyebrow">48 keys &middot; real piano samples &middot; live notation</p>
+            <h1>Your music, <em>written</em> as you play it</h1>
+            <p class="lede">
+                Play with your mouse, your touchscreen, or your computer keyboard. Every note you press is
+                voiced with a recorded piano sample and placed instantly on the grand staff below, so your
+                improvisation turns into a readable score while you perform.
+            </p>
+            <ul class="feature-list">
+                <li><span aria-hidden="true">&#9833;</span> Four octaves, from the small to the third</li>
+                <li><span aria-hidden="true">&#9834;</span> Sustain pedal &mdash; hold <kbd>Shift</kbd></li>
+                <li><span aria-hidden="true">&#9835;</span> Replay, undo, or clear your melody</li>
+            </ul>
+        </section>
+
+        <section id="instrument" class="instrument shell reveal" aria-labelledby="instrument-title">
+            <div class="section-head">
+                <h2 id="instrument-title">Enjoy your performance</h2>
+                <div class="readout" aria-live="polite">
+                    <span class="readout-label">Now playing</span>
+                    <span class="readout-note" id="noteReadout" data-empty="true">&mdash;</span>
+                </div>
+            </div>
+
+            <div class="piano-shell">
+                <div class="fallboard">
+                    <span class="fallboard-brand">Virtuoso</span>
+                    <span class="fallboard-meta" id="loadStatus" role="status">Warming up the strings&hellip;</span>
+                </div>
+                <div class="felt" aria-hidden="true"></div>
+                <div class="keybed" id="keybed">
+                    <div class="keyboard" id="piano" role="group" aria-label="Piano keyboard, four octaves"></div>
+                </div>
+                <p class="scroll-hint" aria-hidden="true">Swipe the keys sideways to reach every octave</p>
+            </div>
+
+            <div class="console" aria-label="Performance controls">
+                <div class="console-group">
+                    <label class="console-label" for="volume">Volume</label>
+                    <div class="slider-row">
+                        <span class="slider-icon" aria-hidden="true">&#9834;</span>
+                        <input type="range" id="volume" min="0" max="100" value="80" aria-label="Volume">
+                        <output id="volumeOut" for="volume">80</output>
+                    </div>
+                </div>
+
+                <div class="console-group">
+                    <span class="console-label" id="octave-label">Typing octaves</span>
+                    <div class="stepper" role="group" aria-labelledby="octave-label">
+                        <button type="button" class="step-btn" id="octaveDown" aria-label="Shift typing octave down">
+                            &minus;</button>
+                        <span class="stepper-value" id="octaveValue" aria-live="polite">1&ndash;2</span>
+                        <button type="button" class="step-btn" id="octaveUp" aria-label="Shift typing octave up">
+                            +</button>
+                    </div>
+                </div>
+
+                <div class="console-group">
+                    <span class="console-label">Options</span>
+                    <div class="switch-row">
+                        <button type="button" class="switch" id="sustainToggle" role="switch" aria-checked="false">
+                            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                            <span class="switch-text">Sustain</span>
+                        </button>
+                        <button type="button" class="switch" id="letterToggle" role="switch" aria-checked="true">
+                            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                            <span class="switch-text">Key hints</span>
+                        </button>
+                        <button type="button" class="switch" id="nameToggle" role="switch" aria-checked="true">
+                            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                            <span class="switch-text">Note names</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="score" class="score shell reveal" aria-labelledby="score-title">
+            <div class="section-head">
+                <h2 id="score-title">Your composition</h2>
+                <p class="count-pill"><span id="noteCount">0</span> notes</p>
+            </div>
+
+            <div class="sheet">
+                <div class="sheet-scroll" id="sheetScroll" tabindex="0" role="img"
+                    aria-label="Musical staff showing the notes you have played">
+                    <canvas id="staffCanvas"></canvas>
+                </div>
+                <p class="sheet-empty" id="sheetEmpty">Press a key &mdash; your first note lands right here.</p>
+            </div>
+
+            <div class="score-actions">
+                <button type="button" class="action primary" id="playBtn">
+                    <span class="action-icon" aria-hidden="true">&#9654;</span> Play back
+                </button>
+                <button type="button" class="action" id="demoBtn">
+                    <span class="action-icon" aria-hidden="true">&#9834;</span> Demo melody
+                </button>
+                <button type="button" class="action" id="undoBtn" aria-label="Undo the last note">
+                    <span class="action-icon" aria-hidden="true">&#8630;</span> Undo
+                </button>
+                <button type="button" class="action danger" id="clearBtn" aria-label="Clear the staff and notes">
+                    <span class="action-icon" aria-hidden="true">&times;</span> Clear
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="shell footer-inner">
+            <p class="footer-note">
+                Thank you for your interest in this project. I would love to hear any feedback, suggestions, or
+                ideas you might have &mdash; reach me on
+                <a href="https://www.linkedin.com/in/khvostiv/" target="_blank" rel="noopener">LinkedIn</a>.
+            </p>
+            <address>Copyright &copy; 2024 Vasilina Khvostikova</address>
+        </div>
+    </footer>
+
+    <dialog class="guide" id="helpDialog" aria-labelledby="guide-title">
+        <form method="dialog" class="guide-close-form">
+            <button class="guide-close" aria-label="Close the keyboard guide">&times;</button>
+        </form>
+        <h2 id="guide-title">Keyboard guide</h2>
+        <p class="guide-lede">Two full octaves sit under your fingers. Shift the range with the arrow keys to reach
+            all four.</p>
+
+        <div class="guide-rows">
+            <div class="guide-row">
+                <h3>Upper octave</h3>
+                <p class="guide-keys">
+                    <kbd>Q</kbd><kbd>2</kbd><kbd>W</kbd><kbd>3</kbd><kbd>E</kbd><kbd>R</kbd><kbd>5</kbd><kbd>T</kbd><kbd>6</kbd><kbd>Y</kbd><kbd>7</kbd><kbd>U</kbd><kbd>I</kbd>
+                </p>
+            </div>
+            <div class="guide-row">
+                <h3>Lower octave</h3>
+                <p class="guide-keys">
+                    <kbd>Z</kbd><kbd>S</kbd><kbd>X</kbd><kbd>D</kbd><kbd>C</kbd><kbd>V</kbd><kbd>G</kbd><kbd>B</kbd><kbd>H</kbd><kbd>N</kbd><kbd>J</kbd><kbd>M</kbd><kbd>,</kbd>
+                </p>
+            </div>
+        </div>
+
+        <dl class="guide-list">
+            <div>
+                <dt><kbd>Shift</kbd></dt>
+                <dd>Sustain pedal &mdash; hold it down to let the notes ring</dd>
+            </div>
+            <div>
+                <dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd></dt>
+                <dd>Move the typing range an octave lower or higher</dd>
+            </div>
+            <div>
+                <dt><kbd>Backspace</kbd></dt>
+                <dd>Undo the last note on the staff</dd>
+            </div>
+            <div>
+                <dt><kbd>Esc</kbd></dt>
+                <dd>Close this guide</dd>
+            </div>
+        </dl>
+    </dialog>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
 
     <script src="piano.js"></script>
-    
-    <footer>
-        <address>Copyright &copy; 2024 Vasilina Khvostikova</address>
-        <nav class="container2">
-            <p>Thank you for your interest in this project! I would love to hear any feedback, suggestions, or ideas you might have. Feel free to contact me via <a href="https://www.linkedin.com/in/khvostiv/">LinkedIn Profile</a>.</p>
-        </nav>
-    </footer> 
-       
 </body>
+
 </html>
